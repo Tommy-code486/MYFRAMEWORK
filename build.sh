@@ -20,10 +20,10 @@ if [ $? -ne 0 ]; then
 fi
 rm sources.txt
 
-echo "[2/3 Creation du fichier $JAR_NAME....]"
+echo "[2/3] Creation du fichier $JAR_NAME...."
 jar cf $JAR_NAME -C $BIN_DIR .
 
-if [ $? -ne 0]; then
+if [ $? -ne 0 ]; then
     echo "Erreur de creation de la creation du JAR"
     exit 1
 fi
