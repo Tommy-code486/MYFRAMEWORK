@@ -1,19 +1,20 @@
-package controller;
+package util;
 
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import mg.itu.tommy.annotation.Controller;
 
 
 public class Utilitaire {
+
     public static List<String> ScanneClass(String packageName) throws Exception {
         List<String> classes = new ArrayList<>();
         String path = packageName.replace('.', '/');
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         URL resource = classLoader.getResource(path);
+
         if (resource == null) {
             return classes;
         }
