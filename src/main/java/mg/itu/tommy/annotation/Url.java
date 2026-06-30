@@ -10,4 +10,5 @@ import java.lang.annotation.Target;
 
 public @interface Url {
      String value() default "";
+     MethodHttp method() default MethodHttp.GET;
 }
