@@ -79,7 +79,6 @@ public class FrontController extends HttpServlet {
         out.println("Contrôleur : " + controleurAssocie);
         out.println("Méthode    : " + methodeTrouvee.getName());
     } else {
-        // L'URL est affichée, mais on indique qu'aucune méthode ne lui correspond et on affiche les url existe avec leur méthodes associées
         out.println("[RÉSULTAT] : ");
         out.println("L'URL \"" + urlDemandee + "\" n'a pas de méthode associée.");
         out.println("URLs disponibles :");
