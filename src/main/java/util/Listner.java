@@ -1,4 +1,4 @@
-package mg.itu.rivaldo.controller;
+package mg.itu.tommy.util;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import mg.itu.rivaldo.annotation.Url;
+import mg.itu.tommy.annotation.Url;
 
 
 @WebListener

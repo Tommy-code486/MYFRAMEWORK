@@ -1,4 +1,4 @@
-package mg.itu.rivaldo.controller;
+package mg.itu.tommy.util;
 import java.lang.reflect.Method;
 
 public class Mapping {

@@ -1,5 +1,5 @@
 // FrontControllerServlet.java - version corrigée
-package mg.itu.rivaldo.controller;
+package mg.itu.tommy.util;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;

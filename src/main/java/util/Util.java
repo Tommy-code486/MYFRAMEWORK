@@ -1,11 +1,12 @@
-package mg.itu.rivaldo.controller;
+package mg.itu.tommy.util;
 import jakarta.servlet.ServletContext;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import mg.itu.rivaldo.annotation.UrlMethod;
+import mg.itu.tommy.annotation.UrlMethod;
 import java.util.Map;
 import java.net.URL;
 
@@ -13,7 +14,7 @@ import java.net.URL;
 
 public class Util {
 
-    public List<String> getListClassNamesWithAnnotation( ServletContext context,String packageName,Class annotationClass, Map<UrlType, Mapping> mappingUrls) {
+    public List<String> getListClassNamesWithAnnotation( ServletContext context,String packageName,Class<? extends Annotation> annotationClass, Map<UrlType, Mapping> mappingUrls) {
         List<String> result = new ArrayList<>();
         try {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -34,7 +35,7 @@ public class Util {
         return result;
     }
 
-    private void scanDirectory(File directory,String packageName,Class annotationClass,List<String> result, Map<UrlType, Mapping> mappingUrls) {
+    private void scanDirectory(File directory,String packageName,Class<? extends Annotation> annotationClass,List<String> result, Map<UrlType, Mapping> mappingUrls) {
         File[] files = directory.listFiles();
         if (files == null) {
             return;

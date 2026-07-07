@@ -1,7 +1,7 @@
 
-package mg.itu.rivaldo.controller;
-import java.util.Map;
+package mg.itu.tommy.util;
 import java.util.HashMap;
+import java.util.Map;
 
 public class ModelAndVue {
     String vue;
