@@ -1,7 +1,5 @@
 package mg.itu.tommy.mapping;
-
 import java.util.Objects;
-
 import mg.itu.tommy.annotation.MethodHttp;
 
 public class MappingKey {
