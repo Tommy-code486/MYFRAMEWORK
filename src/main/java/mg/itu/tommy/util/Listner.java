@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import mg.itu.tommy.annotation.Url;
+import mg.itu.tommy.annotation.Controller;
 
 
 @WebListener
@@ -25,7 +25,7 @@ public class Listner implements ServletContextListener {
                     util.getListClassNamesWithAnnotation(
                             context,
                             packageName,
-                            Url.class,
+                            Controller.class,
                             mappingUrls
                     );
 

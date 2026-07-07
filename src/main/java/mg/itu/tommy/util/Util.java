@@ -6,6 +6,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import mg.itu.tommy.annotation.Url;
 import mg.itu.tommy.annotation.UrlMethod;
 import java.util.Map;
 import java.net.URL;
@@ -50,11 +51,19 @@ public class Util {
                     if (clazz.isAnnotationPresent(annotationClass)) {
                         result.add(clazz.getName());
                         for (Method method : clazz.getDeclaredMethods()) {
-                            if (method.isAnnotationPresent(UrlMethod.class)) {
+                            UrlType key = null;
+
+                            if (method.isAnnotationPresent(Url.class)) {
+                                Url annotation = method.getAnnotation(Url.class);
+                                key = new UrlType(annotation.value(), annotation.type());
+                            } else if (method.isAnnotationPresent(UrlMethod.class)) {
                                 UrlMethod annotation = method.getAnnotation(UrlMethod.class);
-                                UrlType key = new UrlType(annotation.value(),annotation.type());
+                                key = new UrlType(annotation.value(), annotation.type());
+                            }
+
+                            if (key != null) {
                                 if(mappingUrls.containsKey(key)) {
-                                    throw new RuntimeException("Duplicate mapping for URL: " + annotation.value() + " and type: " + annotation.type());
+                                    throw new RuntimeException("Duplicate mapping for URL: " + key.getUrl() + " and type: " + key.getVerb());
                                 }
                                 mappingUrls.put(key, new Mapping(clazz, method));
                             }
