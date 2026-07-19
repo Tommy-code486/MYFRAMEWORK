@@ -49,8 +49,18 @@ public class FrontControllerServlet extends HttpServlet {
 
             if (mapping != null) {
                 Object controllerInstance = mapping.getControllerClass().getDeclaredConstructor().newInstance();
-                Object retour = mapping.getMethod().invoke(controllerInstance);
-    
+                Class<?>[] typeParametres = mapping.getMethod().getParameterTypes();
+                Object[] argument = new Object[typeParametres.length];
+
+                for (int i = 0; i < typeParametres.length; i++) {
+                    if (typeParametres[i] == HttpServletRequest.class) {
+                        argument[i] = request;
+                    } else {
+                        argument[i] = null; 
+                    }
+                }
+                Object retour = mapping.getMethod().invoke(controllerInstance, argument);
+
                 if(retour instanceof ModelAndVue) {
                     ModelAndVue modelAndVue = (ModelAndVue) retour;
                     
