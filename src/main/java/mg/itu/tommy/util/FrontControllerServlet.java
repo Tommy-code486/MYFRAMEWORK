@@ -7,6 +7,9 @@ import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import mg.itu.tommy.annotation.RestAPI;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -44,13 +47,41 @@ public class FrontControllerServlet extends HttpServlet {
         path = path.substring(1);
         PrintWriter out = response.getWriter();
         try {
-            out.println("URL    : " + path);
+            System.out.println("URL    : " + path);
             Mapping mapping = mappingUrls.get(new UrlType("/" + path, request.getMethod()));
 
             if (mapping != null) {
                 Object controllerInstance = mapping.getControllerClass().getDeclaredConstructor().newInstance();
-                Object retour = mapping.getMethod().invoke(controllerInstance);
-    
+                Class<?>[] typeParametres = mapping.getMethod().getParameterTypes();
+                Object[] argument = new Object[typeParametres.length];
+
+                for (int i = 0; i < typeParametres.length; i++) {
+                    if (typeParametres[i] == HttpServletRequest.class) {
+                        argument[i] = request;
+                    } else {
+                        argument[i] = null; 
+                    }
+                }
+
+
+                // Verification API
+                Object retour = mapping.getMethod().invoke(controllerInstance, argument);
+                boolean isRestAPI = mapping.getMethod().isAnnotationPresent(RestAPI.class);
+
+
+                if(isRestAPI) {
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    
+                    if (retour instanceof String) {
+                        out.println(retour);
+                    } else {
+                        ObjectMapper mapper = new ObjectMapper();
+                        String json = mapper.writeValueAsString(retour);
+                        out.println(json);
+                    }
+                    return;
+                }
                 if(retour instanceof ModelAndVue) {
                     ModelAndVue modelAndVue = (ModelAndVue) retour;
                     
