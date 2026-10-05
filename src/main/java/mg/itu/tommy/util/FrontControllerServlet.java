@@ -55,14 +55,6 @@ public class FrontControllerServlet extends HttpServlet {
                 Object[] argument = new Object[typeParametres.length];
                 java.lang.reflect.Parameter[] parametres = mapping.getMethod().getParameters();
 
-                for (int i = 0; i < typeParametres.length; i++) {
-                    if (typeParametres[i] == HttpServletRequest.class) {
-                        argument[i] = request;
-                    } else {
-                        argument[i] = null;
-                    }
-                }
-
                 for (int i = 0; i < parametres.length; i++) {
                     String nomArgument = parametres[i].getName();
 
@@ -75,15 +67,15 @@ public class FrontControllerServlet extends HttpServlet {
                             if (type == String.class) {
                                 argument[i] = valeur;
                             } else if (type == int.class || type == Integer.class) {
-                                argument[i] = Integer.valueOf(valeur);
+                                argument[i] = Integer.parseInt(valeur);
                             } else if (type == long.class || type == Long.class) {
-                                argument[i] = Long.valueOf(valeur);
+                                argument[i] = Long.parseLong(valeur);
                             } else if (type == double.class || type == Double.class) {
-                                argument[i] = Double.valueOf(valeur);
+                                argument[i] = Double.parseDouble(valeur);
                             } else if (type == float.class || type == Float.class) {
-                                argument[i] = Float.valueOf(valeur);
+                                argument[i] = Float.parseFloat(valeur);
                             } else if (type == boolean.class || type == Boolean.class) {
-                                argument[i] = Boolean.valueOf(valeur);
+                                argument[i] = Boolean.parseBoolean(valeur);
                             }
 
                             break;
