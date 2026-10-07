@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 
-
 @WebServlet(name = "FrontControllerServlet", urlPatterns = {"/"})
 public class FrontControllerServlet extends HttpServlet {
 
@@ -24,23 +23,23 @@ public class FrontControllerServlet extends HttpServlet {
     private String suffixe;
     private List<String> controllerClassNames;
     private Map<UrlType, Mapping> mappingUrls = new HashMap<>();
-   
 
-    @Override   
-    @SuppressWarnings("unchecked") 
+    @Override
+    @SuppressWarnings("unchecked")
     public void init() throws ServletException {
         try {
-         prefixe = getInitParameter("prefixe");
-         suffixe = getInitParameter("suffixe");
-          ServletContext context = getServletContext();
-          mappingUrls = (Map<UrlType, Mapping>) context.getAttribute("mappingUrls");
-          controllerClassNames = (List<String>) context.getAttribute("controllerClassNames");
+            prefixe = getInitParameter("prefixe");
+            suffixe = getInitParameter("suffixe");
+            ServletContext context = getServletContext();
+            mappingUrls = (Map<UrlType, Mapping>) context.getAttribute("mappingUrls");
+            controllerClassNames = (List<String>) context.getAttribute("controllerClassNames");
         } catch (Exception e) {
             throw new ServletException("Erreur initialisation", e);
         }
     }
 
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         response.setContentType("text/plain");
         String uri = request.getRequestURI();
         String path = uri.substring(request.getContextPath().length());
@@ -54,25 +53,44 @@ public class FrontControllerServlet extends HttpServlet {
                 Object controllerInstance = mapping.getControllerClass().getDeclaredConstructor().newInstance();
                 Class<?>[] typeParametres = mapping.getMethod().getParameterTypes();
                 Object[] argument = new Object[typeParametres.length];
+                java.lang.reflect.Parameter[] parametres = mapping.getMethod().getParameters();
 
-                for (int i = 0; i < typeParametres.length; i++) {
-                    if (typeParametres[i] == HttpServletRequest.class) {
-                        argument[i] = request;
-                    } else {
-                        argument[i] = null; 
+                for (int i = 0; i < parametres.length; i++) {
+                    String nomArgument = parametres[i].getName();
+
+                    for (String nomRequest : request.getParameterMap().keySet()) {
+                        if (nomArgument.equals(nomRequest)) {
+
+                            String valeur = request.getParameter(nomRequest);
+                            Class<?> type = typeParametres[i];
+
+                            if (type == String.class) {
+                                argument[i] = valeur;
+                            } else if (type == int.class || type == Integer.class) {
+                                argument[i] = Integer.parseInt(valeur);
+                            } else if (type == long.class || type == Long.class) {
+                                argument[i] = Long.parseLong(valeur);
+                            } else if (type == double.class || type == Double.class) {
+                                argument[i] = Double.parseDouble(valeur);
+                            } else if (type == float.class || type == Float.class) {
+                                argument[i] = Float.parseFloat(valeur);
+                            } else if (type == boolean.class || type == Boolean.class) {
+                                argument[i] = Boolean.parseBoolean(valeur);
+                            }
+
+                            break;
+                        }
                     }
                 }
-
 
                 // Verification API
                 Object retour = mapping.getMethod().invoke(controllerInstance, argument);
                 boolean isRestAPI = mapping.getMethod().isAnnotationPresent(RestAPI.class);
 
-
-                if(isRestAPI) {
+                if (isRestAPI) {
                     response.setContentType("application/json");
                     response.setCharacterEncoding("UTF-8");
-                    
+
                     if (retour instanceof String) {
                         out.println(retour);
                     } else {
@@ -82,10 +100,11 @@ public class FrontControllerServlet extends HttpServlet {
                     }
                     return;
                 }
-                if(retour instanceof ModelAndVue) {
+
+                if (retour instanceof ModelAndVue) {
                     ModelAndVue modelAndVue = (ModelAndVue) retour;
-                    
-                    for(Map.Entry<String, Object> entry : modelAndVue.getData().entrySet()) {
+
+                    for (Map.Entry<String, Object> entry : modelAndVue.getData().entrySet()) {
                         request.setAttribute(entry.getKey(), entry.getValue());
                     }
 
@@ -97,26 +116,28 @@ public class FrontControllerServlet extends HttpServlet {
                     out.println("Retour de la méthode : " + retour);
                 }
 
-                out.println("URL:"+ path + "  Class :" + mapping.getControllerClass().getSimpleName() + "  -> " + mapping.getMethod().getName());
-            
+                out.println("URL:" + path + "  Class :" + mapping.getControllerClass().getSimpleName()
+                        + "  -> " + mapping.getMethod().getName());
+
             } else {
                 out.println("Aucune correspondance trouvée pour l'URL : " + path);
                 out.println("Les methodes disponibles sont :");
                 for (Map.Entry<UrlType, Mapping> entry : mappingUrls.entrySet()) {
                     UrlType urlType = entry.getKey();
                     Mapping m = entry.getValue();
-                    out.println("URL: " + urlType.getUrl() + "  Class: " + m.getControllerClass().getSimpleName() + "  -> " + m.getMethod().getName() + "  Type: " + urlType.getVerb());
+                    out.println("URL: " + urlType.getUrl() + "  Class: "
+                            + m.getControllerClass().getSimpleName() + "  -> "
+                            + m.getMethod().getName() + "  Type: " + urlType.getVerb());
                 }
             }
         } catch (Exception e) {
             out.println("Erreur lors du traitement de la requête : " + e.getMessage());
         }
-            
+
         out.println("---Sprint1---");
         for (String className : controllerClassNames) {
             out.println("Classe trouvée : " + className);
         }
-
     }
 
     @Override

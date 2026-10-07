@@ -11,7 +11,7 @@ rm -f $JAR_NAME
 mkdir $BIN_DIR
 
 find $SRC_DIR -name "*.java" > sources.txt
-javac -cp "$TOMCAT_LIB/*" -d $BIN_DIR @sources.txt
+javac -parameters -cp "$TOMCAT_LIB/*" -d $BIN_DIR @sources.txt
 
 if [ $? -ne 0 ]; then 
     echo "Erreur"
