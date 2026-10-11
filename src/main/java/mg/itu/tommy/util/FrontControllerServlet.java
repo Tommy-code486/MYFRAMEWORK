@@ -8,10 +8,13 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import mg.itu.tommy.annotation.RestAPI;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -38,6 +41,16 @@ public class FrontControllerServlet extends HttpServlet {
         }
     }
 
+    private Object convertir(String valeur, Class<?> type) {
+        if (type == String.class) return valeur;
+        if (type == int.class || type == Integer.class) return Integer.parseInt(valeur);
+        if (type == long.class || type == Long.class) return Long.parseLong(valeur);
+        if (type == double.class || type == Double.class) return Double.parseDouble(valeur);
+        if (type == float.class || type == Float.class) return Float.parseFloat(valeur);
+        if (type == boolean.class || type == Boolean.class) return Boolean.parseBoolean(valeur);
+        return null;
+    }
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/plain");
@@ -57,30 +70,31 @@ public class FrontControllerServlet extends HttpServlet {
 
                 for (int i = 0; i < parametres.length; i++) {
                     String nomArgument = parametres[i].getName();
+                    Class<?> type = typeParametres[i];
 
-                    for (String nomRequest : request.getParameterMap().keySet()) {
-                        if (nomArgument.equals(nomRequest)) {
-
-                            String valeur = request.getParameter(nomRequest);
-                            Class<?> type = typeParametres[i];
-
-                            if (type == String.class) {
-                                argument[i] = valeur;
-                            } else if (type == int.class || type == Integer.class) {
-                                argument[i] = Integer.parseInt(valeur);
-                            } else if (type == long.class || type == Long.class) {
-                                argument[i] = Long.parseLong(valeur);
-                            } else if (type == double.class || type == Double.class) {
-                                argument[i] = Double.parseDouble(valeur);
-                            } else if (type == float.class || type == Float.class) {
-                                argument[i] = Float.parseFloat(valeur);
-                            } else if (type == boolean.class || type == Boolean.class) {
-                                argument[i] = Boolean.parseBoolean(valeur);
-                            }
-
-                            break;
+                    boolean typeSimple = type.isPrimitive() || type == String.class|| Number.class.isAssignableFrom(type) || type == Boolean.class;
+                    
+                    if (typeSimple) {
+                        for (String nomRequest : request.getParameterMap().keySet()) {
+                            if (nomArgument.equals(nomRequest)) {
+                                argument[i] = convertir(request.getParameter(nomRequest), type);
+                                break;
+                            } 
                         }
+                    } else {
+                        Object obj = type.getDeclaredConstructor().newInstance();
+                        for (Field champ : type.getDeclaredFields()) {
+                            String valeur = request.getParameter(champ.getName());
+                            if (valeur != null) {
+                                String nomChamp = champ.getName();
+                                String nomSetter = "set" + Character.toUpperCase(nomChamp.charAt(0)) + nomChamp.substring(1);
+                                Method setter = type.getMethod(nomSetter, champ.getType());
+                                setter.invoke(obj, convertir(valeur, champ.getType()));                           
+                            }
+                        }
+                        argument[i] = obj;
                     }
+                    
                 }
 
                 // Verification API
