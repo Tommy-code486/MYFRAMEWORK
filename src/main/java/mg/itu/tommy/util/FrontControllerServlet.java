@@ -22,6 +22,7 @@ import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.Part;
 
 
+
 @MultipartConfig
 @WebServlet(name = "FrontControllerServlet", urlPatterns = {"/"})
 public class FrontControllerServlet extends HttpServlet {
@@ -89,9 +90,10 @@ public class FrontControllerServlet extends HttpServlet {
                         Object obj = type.getDeclaredConstructor().newInstance();
                         for (Field champ : type.getDeclaredFields()) {
                             if(champ.getType() == Mapfile.class) {
-                                String contentType = request.getConntentType();
+                                String contentType = request.getContentType();
                                 if(contentType != null && contentType.startsWith("multipart/")) {
                                     Part part = request.getPart(champ.getName());
+                                    
                                     if(part != null && part.getSize() > 0) {
                                         String nomFichier = part.getSubmittedFileName();
 
