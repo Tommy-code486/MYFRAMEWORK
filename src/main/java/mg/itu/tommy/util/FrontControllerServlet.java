@@ -20,6 +20,11 @@ import java.util.Map;
 import java.util.HashMap;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.Part;
+import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.Properties;
+import java.util.UUID;
 
 
 
@@ -31,6 +36,7 @@ public class FrontControllerServlet extends HttpServlet {
     private String suffixe;
     private List<String> controllerClassNames;
     private Map<UrlType, Mapping> mappingUrls = new HashMap<>();
+    private String dossierUpload;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -41,10 +47,20 @@ public class FrontControllerServlet extends HttpServlet {
             ServletContext context = getServletContext();
             mappingUrls = (Map<UrlType, Mapping>) context.getAttribute("mappingUrls");
             controllerClassNames = (List<String>) context.getAttribute("controllerClassNames");
+
+            Properties props = new Properties();
+            try (InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("upload.properties")) {
+                if(in != null) {
+                    props.load(in);
+                    dossierUpload = props.getProperty("upload.dir");
+                }
+            }
+
         } catch (Exception e) {
             throw new ServletException("Erreur initialisation", e);
         }
     }
+
 
     private Object convertir(String valeur, Class<?> type) {
         if (type == String.class) return valeur;
@@ -89,22 +105,31 @@ public class FrontControllerServlet extends HttpServlet {
                     } else {
                         Object obj = type.getDeclaredConstructor().newInstance();
                         for (Field champ : type.getDeclaredFields()) {
+                            
                             if(champ.getType() == Mapfile.class) {
                                 String contentType = request.getContentType();
                                 if(contentType != null && contentType.startsWith("multipart/")) {
+                                    
                                     Part part = request.getPart(champ.getName());
                                     
                                     if(part != null && part.getSize() > 0) {
                                         String nomFichier = part.getSubmittedFileName();
+                                        byte[] octets = part.getInputStream().readAllBytes();
 
                                         Mapfile mapfile = new Mapfile();
                                         mapfile.setNom(nomFichier);
                                         mapfile.setExtension(nomFichier.contains(".")
                                                 ? nomFichier.substring(nomFichier.lastIndexOf('.') + 1): "");
-                                        mapfile.setBytes(part.getInputStream().readAllBytes());
+                                        mapfile.setBytes(octets);
 
-                                        String nomChamp = champ.getName();
-                                        String nomSetter = "set" + Character.toUpperCase(nomChamp.charAt(0)) + nomChamp.substring(1);
+                                        if(dossierUpload != null) {
+                                            File dossier = new File(dossierUpload);
+                                            dossier.mkdirs();
+                                            File destination = new File(dossier, UUID.randomUUID().toString() + "_" + nomFichier);
+                                            Files.write(destination.toPath(), octets);
+                                        }
+                                        String nom = champ.getName();
+                                        String nomSetter = "set" + Character.toUpperCase(nom.charAt(0)) + nom.substring(1);
                                         type.getMethod(nomSetter, Mapfile.class).invoke(obj, mapfile);
                                     }
                                 }
