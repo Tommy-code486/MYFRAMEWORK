@@ -18,7 +18,12 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.http.Part;
 
+
+
+@MultipartConfig
 @WebServlet(name = "FrontControllerServlet", urlPatterns = {"/"})
 public class FrontControllerServlet extends HttpServlet {
 
@@ -84,6 +89,27 @@ public class FrontControllerServlet extends HttpServlet {
                     } else {
                         Object obj = type.getDeclaredConstructor().newInstance();
                         for (Field champ : type.getDeclaredFields()) {
+                            if(champ.getType() == Mapfile.class) {
+                                String contentType = request.getContentType();
+                                if(contentType != null && contentType.startsWith("multipart/")) {
+                                    Part part = request.getPart(champ.getName());
+                                    
+                                    if(part != null && part.getSize() > 0) {
+                                        String nomFichier = part.getSubmittedFileName();
+
+                                        Mapfile mapfile = new Mapfile();
+                                        mapfile.setNom(nomFichier);
+                                        mapfile.setExtension(nomFichier.contains(".")
+                                                ? nomFichier.substring(nomFichier.lastIndexOf('.') + 1): "");
+                                        mapfile.setBytes(part.getInputStream().readAllBytes());
+
+                                        String nomChamp = champ.getName();
+                                        String nomSetter = "set" + Character.toUpperCase(nomChamp.charAt(0)) + nomChamp.substring(1);
+                                        type.getMethod(nomSetter, Mapfile.class).invoke(obj, mapfile);
+                                    }
+                                }
+                                continue;
+                            }
                             String valeur = request.getParameter(champ.getName());
                             if (valeur != null) {
                                 String nomChamp = champ.getName();
