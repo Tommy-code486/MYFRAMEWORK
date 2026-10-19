@@ -1,28 +1,31 @@
 // FrontControllerServlet.java - version corrigée
 package mg.itu.tommy.util;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
+import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Part;
 import mg.itu.tommy.annotation.RestAPI;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-import jakarta.servlet.annotation.MultipartConfig;
-import jakarta.servlet.http.Part;
-import java.io.File;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -92,6 +95,19 @@ public class FrontControllerServlet extends HttpServlet {
                 for (int i = 0; i < parametres.length; i++) {
                     String nomArgument = parametres[i].getName();
                     Class<?> type = typeParametres[i];
+                    if (type == MySession.class) {
+                        HttpSession httpSession = request.getSession();
+                        mySession = new MySession();
+                                        
+                        Enumeration<String> noms = httpSession.getAttributeNames();
+                        while (noms.hasMoreElements()) {
+                            String cle = noms.nextElement();
+                            mySession.getData().put(cle, httpSession.getAttribute(cle));
+                        }
+                    
+                        argument[i] = mySession;
+                        continue;
+                    }
 
                     boolean typeSimple = type.isPrimitive() || type == String.class|| Number.class.isAssignableFrom(type) || type == Boolean.class;
                     
