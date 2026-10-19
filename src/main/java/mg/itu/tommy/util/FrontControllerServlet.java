@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -104,7 +105,6 @@ public class FrontControllerServlet extends HttpServlet {
                             String cle = noms.nextElement();
                             mySession.getData().put(cle, httpSession.getAttribute(cle));
                         }
-                    
                         argument[i] = mySession;
                         continue;
                     }
@@ -147,6 +147,25 @@ public class FrontControllerServlet extends HttpServlet {
                                         String nom = champ.getName();
                                         String nomSetter = "set" + Character.toUpperCase(nom.charAt(0)) + nom.substring(1);
                                         type.getMethod(nomSetter, Mapfile.class).invoke(obj, mapfile);
+                                        if (mySession != null) {
+                                            HttpSession httpSession = request.getSession();
+
+                                            Enumeration<String> noms = httpSession.getAttributeNames();
+                                            List<String> aSupprimer = new ArrayList<>();
+                                            while (noms.hasMoreElements()) {
+                                                String cle = noms.nextElement();
+                                                if (!mySession.getData().containsKey(cle)) {
+                                                    aSupprimer.add(cle);
+                                                }
+                                            }
+                                            for (String cle : aSupprimer) {
+                                                httpSession.removeAttribute(cle);
+                                            }
+                                        
+                                            for (Map.Entry<String, Object> e : mySession.getData().entrySet()) {
+                                                httpSession.setAttribute(e.getKey(), e.getValue());
+                                            }
+                                        }
                                     }
                                 }
                                 continue;
