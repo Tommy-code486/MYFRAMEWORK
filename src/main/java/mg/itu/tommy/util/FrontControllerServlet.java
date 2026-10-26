@@ -17,6 +17,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
@@ -25,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
+import mg.itu.tommy.annotation.Auth;
 
 @MultipartConfig
 @WebServlet(name = "FrontControllerServlet", urlPatterns = {"/"})
@@ -35,20 +38,27 @@ public class FrontControllerServlet extends HttpServlet {
     private List<String> controllerClassNames;
     private Map<UrlType, Mapping> mappingUrls = new HashMap<>();
     private String dossierUpload;
+    private String authKey;
 
     public static final String SESSION_MAP_KEY = "instanceSession";
+
 
     // ===================== INITIALISATION =====================
 
     @Override
     @SuppressWarnings("unchecked")
+    
     public void init() throws ServletException {
         try {
             prefixe = getInitParameter("prefixe");
             suffixe = getInitParameter("suffixe");
             ServletContext context = getServletContext();
+
+            authKey = context.getInitParameter("authentification");
+
             mappingUrls = (Map<UrlType, Mapping>) context.getAttribute("mappingUrls");
             controllerClassNames = (List<String>) context.getAttribute("controllerClassNames");
+
             if (context.getAttribute(SESSION_MAP_KEY) == null) {
                context.setAttribute(SESSION_MAP_KEY, new java.util.concurrent.ConcurrentHashMap<HttpSession, Session>());
             }
@@ -57,6 +67,19 @@ public class FrontControllerServlet extends HttpServlet {
         } catch (Exception e) {
             throw new ServletException("Erreur initialisation", e);
         }
+    }
+
+    private boolean estAutorise(Mapping mapping, HttpServletRequest request) {
+        boolean needAuth =
+            mapping.getMethod().isAnnotationPresent(Auth.class)
+            || mapping.getControllerClass().isAnnotationPresent(Auth.class);
+        
+        if (!needAuth) {
+            return true;
+        }
+    
+        HttpSession session = request.getSession(false);
+        return session != null && session.getAttribute("user") != null;
     }
 
     private void chargerDossierUpload() throws IOException {
@@ -255,6 +278,14 @@ public class FrontControllerServlet extends HttpServlet {
             Mapping mapping = mappingUrls.get(new UrlType("/" + path, request.getMethod()));
 
             if (mapping != null) {
+
+                if (!estAutorise(mapping, request)) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("text/html");
+                    out.println("<h3>Accès refusé : vous devez vous connecter.</h3>");
+                    out.println("<a href=\"" + request.getContextPath() + "/login\">Se connecter</a>");
+                    return;
+                }
                 Object controllerInstance = mapping.getControllerClass().getDeclaredConstructor().newInstance();
                 Object[] argument = construireArguments(mapping, request);
 
