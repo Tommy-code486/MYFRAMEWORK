@@ -312,7 +312,8 @@ public class FrontControllerServlet extends HttpServlet {
                     out.println("Accès interdit");
                     return;
                 }
-                Object controllerInstance = mapping.getControllerClass().getDeclaredConstructor().newInstance();
+                Map<Class<?>, Object> controllerInstances =(Map<Class<?>, Object>) getServletContext().getAttribute("controllerInstances");
+                Object controllerInstance =controllerInstances.get(mapping.getControllerClass());    
                 Object[] argument = construireArguments(mapping, request);
 
                 // Verification API

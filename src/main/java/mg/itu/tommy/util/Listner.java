@@ -29,8 +29,21 @@ public class Listner implements ServletContextListener {
                             mappingUrls
                     );
 
+
             context.setAttribute("mappingUrls", mappingUrls);
-            context.setAttribute("controllerClassNames", controllerClassNames);
+            Map<Class<?>, Object> controllerInstances = new HashMap<>();
+            for (Mapping mapping : mappingUrls.values()) {
+                Class<?> controllerClass = mapping.getControllerClass();
+                controllerInstances.computeIfAbsent(controllerClass, clazz -> {
+                    try {
+                        return clazz.getDeclaredConstructor().newInstance();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            }
+
+            context.setAttribute("controllerInstances", controllerInstances);
 
             System.out.println("Framework initialisé.");
 
