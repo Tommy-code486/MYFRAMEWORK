@@ -53,6 +53,7 @@ public class FrontControllerServlet extends HttpServlet {
         try {
             prefixe = getInitParameter("prefixe");
             suffixe = getInitParameter("suffixe");
+
             ServletContext context = getServletContext();
 
             authKey = context.getInitParameter("authentification");
@@ -64,7 +65,6 @@ public class FrontControllerServlet extends HttpServlet {
             if (context.getAttribute(SESSION_MAP_KEY) == null) {
                context.setAttribute(SESSION_MAP_KEY, new java.util.concurrent.ConcurrentHashMap<HttpSession, Session>());
             }
-
             chargerDossierUpload();
         } catch (Exception e) {
             throw new ServletException("Erreur initialisation", e);
@@ -73,6 +73,7 @@ public class FrontControllerServlet extends HttpServlet {
 
     private int verificationAccess(Mapping mapping, HttpServletRequest request) {
         Auth auth = mapping.getMethod().getAnnotation(Auth.class);
+
         if (auth == null) {
             auth = mapping.getControllerClass().getAnnotation(Auth.class);
         }
@@ -87,6 +88,7 @@ public class FrontControllerServlet extends HttpServlet {
         if(roleAutorises.length == 0) {
             return 0;
         }
+
         Object roletUtilisateur = (roleKey == null) ? null : httpSession.getAttribute(roleKey);
         if(roletUtilisateur != null) {
             for(String role : roleAutorises) {
@@ -296,15 +298,16 @@ public class FrontControllerServlet extends HttpServlet {
             if (mapping != null) {
 
                 int access = verificationAccess(mapping, request);
-                if (access == HttpServletResponse.SC_UNAUTHORIZED) {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+                if (access == response.SC_UNAUTHORIZED) {
+                    response.setStatus(response.SC_UNAUTHORIZED);
                     response.setContentType("text/html");
                     out.println("Vous devez vous connecter pour accéder à cette ressource.");
                     out.println("<a href=\"" + request.getContextPath() + "/login\">Se connecter</a>");
                     return;
                 }
-                if (access == HttpServletResponse.SC_FORBIDDEN) {
-                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                if (access == response.SC_FORBIDDEN) {
+                    response.setStatus(response.SC_FORBIDDEN);
                     response.setContentType("text/html");
                     out.println("Accès interdit");
                     return;
