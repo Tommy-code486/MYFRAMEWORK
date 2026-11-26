@@ -119,6 +119,9 @@ public class FrontControllerServlet extends HttpServlet {
         if (type == double.class || type == Double.class) return Double.parseDouble(valeur);
         if (type == float.class || type == Float.class) return Float.parseFloat(valeur);
         if (type == boolean.class || type == Boolean.class) return Boolean.parseBoolean(valeur);
+        if (type == java.time.LocalDate.class) return java.time.LocalDate.parse(valeur);  
+        if (type == java.time.LocalDateTime.class) return java.time.LocalDateTime.parse(valeur); 
+        if (type.isEnum()) return Enum.valueOf((Class<Enum>) type, valeur);
         return null;
     }
 
@@ -239,7 +242,6 @@ public class FrontControllerServlet extends HttpServlet {
             Files.write(destination.toPath(), octets);
         }
     }
-
     
     // ===================== REPONSES =====================
     private void envoyerReponseRestAPI(Object retour, HttpServletResponse response, PrintWriter out)
