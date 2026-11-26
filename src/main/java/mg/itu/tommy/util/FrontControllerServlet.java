@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 import mg.itu.tommy.annotation.Auth;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 @MultipartConfig
 @WebServlet(name = "FrontControllerServlet", urlPatterns = {"/"})
@@ -40,8 +41,10 @@ public class FrontControllerServlet extends HttpServlet {
     private String dossierUpload;
     private String authKey;
     private String roleKey;
-
     public static final String SESSION_MAP_KEY = "instanceSession";
+    private static final ObjectMapper MAPPER = new ObjectMapper()
+        .findAndRegisterModules()
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
 
     // ===================== INITIALISATION =====================
@@ -112,6 +115,7 @@ public class FrontControllerServlet extends HttpServlet {
 
     // ===================== CONVERSION =====================
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private Object convertir(String valeur, Class<?> type) {
         if (type == String.class) return valeur;
         if (type == int.class || type == Integer.class) return Integer.parseInt(valeur);
@@ -251,10 +255,10 @@ public class FrontControllerServlet extends HttpServlet {
 
         if (retour instanceof String) {
             out.println(retour);
+        } if (retour instanceof String) {
+            out.println(retour);
         } else {
-            ObjectMapper mapper = new ObjectMapper();
-            String json = mapper.writeValueAsString(retour);
-            out.println(json);
+            out.println(MAPPER.writeValueAsString(retour));
         }
     }
 
